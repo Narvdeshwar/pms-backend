@@ -1,11 +1,10 @@
-import { email, z } from "zod"
+import { z } from "zod"
 
 // Registration Check
 export const RegisterSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(["ADMIN", "OPERATOR", "MANAGER", "VIEWER"]).optional()
 })
 
 // Login Check

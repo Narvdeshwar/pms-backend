@@ -1,23 +1,30 @@
 generator client{
 provider="prisma-client-js"
+previewFeatures = ["driverAdapters"]
 }
 
 datasource db{
 provider="postgresql"
 }
 
-enum Role{
-  ADMIN
-  MANAGER
-  OPERATOR
-  VIEWER
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
-model User{
-  id String @id @default(uuid())
-  email String @unique
-  password String
-  name String
-  role Role @default(OPERATOR)
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

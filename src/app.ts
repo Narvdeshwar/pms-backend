@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { json } from 'body-parser';
+import { errorHandler } from './shared/middleware/errorHandler';
+import authRoutes from "./modules/auth/routes/auth.routes"
 
 const app = express();
 
@@ -10,12 +12,9 @@ app.use(helmet());
 app.use(cors());
 app.use(json());
 
-// Main Route
-app.get('/', (req, res) => {
-  res.json({ message: 'PMS Backend API is running' });
-});
+app.use('/api/v1/auth', authRoutes);
 
-// Create global error handler later
-// app.use(errorHandler);
+// Global Error Handler
+app.use(errorHandler);
 
 export default app;
