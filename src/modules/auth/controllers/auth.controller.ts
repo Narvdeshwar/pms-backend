@@ -22,9 +22,18 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     try {
         const result = await authService.LoginUser(validation.data);
 
-        res.status(200).json(
-            new ApiResponse(200, result, "Login Successful")
-        );
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax" as const,
+            maxAge: 24 * 60 * 60 * 1000 // 1 day
+        };
+
+        res.status(200)
+            .cookie("accessToken", result.token, options)
+            .json(
+                new ApiResponse(200, result, "Login Successful")
+            );
     } catch (error: any) {
         throw new ApiError(401, error.message);
     }

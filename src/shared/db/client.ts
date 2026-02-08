@@ -10,4 +10,4 @@ const adapter = new PrismaPg(pool)
 
 export const prisma = new PrismaClient({ adapter })
 
-console.log("prisma", prisma)
+console.log("✅ Database client initialized");
