@@ -10,10 +10,20 @@ export const RegisterUser = async (input: RegisterInput) => {
     const existingUser = await prisma.user.findUnique({ where: { email: input.email } })
     if (existingUser) throw new Error("User already registered!")
 
-    // hasing of password
+    // hashing of password
     const hashedPassword = await bcrypt.hash(input.password, 10)
+
+    // Find default role 'OPERATOR'
+    const defaultRole = await prisma.role.findUnique({ where: { name: 'OPERATOR' } })
+    if (!defaultRole) throw new Error("Default role 'OPERATOR' not found!")
+
     const user = await prisma.user.create({
-        data: { ...input, password: hashedPassword }
+        data: {
+            name: input.name,
+            email: input.email,
+            password: hashedPassword,
+            roleId: defaultRole.id
+        }
     })
     const { password, ...userWithOutPassword } = user;
     return userWithOutPassword;
