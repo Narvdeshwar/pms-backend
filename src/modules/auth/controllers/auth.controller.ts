@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import * as authService from "../services/auth.service"
+import * as authService from "../services"
 import { LoginSchema, RegisterSchema } from "../auth.validation";
-import { asyncHandler } from "../../../shared/utils/asyncHandler";
-import { ApiError } from "../../../shared/utils/ApiError";
-import { ApiResponse } from "../../../shared/utils/ApiResponse";
+import { asyncHandler, ApiError, ApiResponse } from "@/shared/utils";
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
     const validation = RegisterSchema.safeParse(req.body)

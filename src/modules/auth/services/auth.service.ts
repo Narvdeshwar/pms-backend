@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { RegisterInput, LoginInput } from '../auth.validation';
-import { prisma } from '../../../shared/db/client';
+import { prisma } from "@/shared/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "something";
 
@@ -13,16 +13,17 @@ export const RegisterUser = async (input: RegisterInput) => {
     // hashing of password
     const hashedPassword = await bcrypt.hash(input.password, 10)
 
-    // Find default role 'OPERATOR'
-    const defaultRole = await prisma.role.findUnique({ where: { name: 'OPERATOR' } })
-    if (!defaultRole) throw new Error("Default role 'OPERATOR' not found!")
+    // Find default role 'LINE_OPERATOR'
+    const defaultRole = await prisma.role.findUnique({ where: { name: 'LINE_OPERATOR' } })
+    if (!defaultRole) throw new Error("Default role 'LINE_OPERATOR' not found!")
 
     const user = await prisma.user.create({
         data: {
             name: input.name,
             email: input.email,
             password: hashedPassword,
-            roleId: defaultRole.id
+            roleId: defaultRole.id,
+            department: input.department
         }
     })
     const { password, ...userWithOutPassword } = user;
@@ -30,12 +31,15 @@ export const RegisterUser = async (input: RegisterInput) => {
 }
 export const LoginUser = async (input: LoginInput) => {
     // check if the user is register or not
-    const isUserExits = await prisma.user.findUnique({ where: { email: input.email } })
+    const isUserExits = await prisma.user.findUnique({
+        where: { email: input.email },
+        include: { role: true }
+    })
     if (!isUserExits) throw new Error("Invalid email or password")
 
     const isValidPassword = await bcrypt.compare(input.password, isUserExits.password)
     if (!isValidPassword) throw new Error("Invalid email or password")
 
-    const token = jwt.sign({ userId: isUserExits.id, role: isUserExits.roleId }, JWT_SECRET, { expiresIn: '1d' })
-    return { token, user: { id: isUserExits.id, name: isUserExits.name, email: isUserExits.email, role: isUserExits.roleId } }
+    const token = jwt.sign({ userId: isUserExits.id, role: isUserExits.role.name }, JWT_SECRET, { expiresIn: '1d' })
+    return { token, user: { id: isUserExits.id, name: isUserExits.name, email: isUserExits.email, role: isUserExits.role.name } }
 }
