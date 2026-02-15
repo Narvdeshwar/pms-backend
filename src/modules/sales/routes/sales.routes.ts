@@ -20,4 +20,18 @@ router.get(
     salesController.getMyOrders
 );
 
+// Get single order
+router.get(
+    "/orders/:id",
+    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN", "PLANT_MANAGER"]),
+    salesController.getOrder
+);
+
+// Update order
+router.patch(
+    "/orders/:id",
+    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN"]),
+    salesController.updateOrder
+);
+
 export default router;

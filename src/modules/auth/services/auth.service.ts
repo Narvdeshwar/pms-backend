@@ -13,21 +13,33 @@ export const RegisterUser = async (input: RegisterInput) => {
     // hashing of password
     const hashedPassword = await bcrypt.hash(input.password, 10)
 
-    // Find default role 'LINE_OPERATOR'
-    const defaultRole = await prisma.role.findUnique({ where: { name: 'LINE_OPERATOR' } })
-    if (!defaultRole) throw new Error("Default role 'LINE_OPERATOR' not found!")
+    // Find role - use provided role or fallback to 'LINE_OPERATOR'
+    const roleName = input.role || 'LINE_OPERATOR';
+    const role = await prisma.role.findUnique({
+        where: { name: roleName }
+    });
+
+    if (!role) throw new Error(`Role '${roleName}' not found!`);
 
     const user = await prisma.user.create({
         data: {
             name: input.name,
             email: input.email,
             password: hashedPassword,
-            roleId: defaultRole.id,
+            roleId: role.id,
             department: input.department
         }
     })
-    const { password, ...userWithOutPassword } = user;
-    return userWithOutPassword;
+    const { password: _, ...userWithOutPassword } = user;
+    const token = jwt.sign({ userId: user.id, role: roleName }, JWT_SECRET, { expiresIn: '1d' });
+
+    return {
+        token,
+        user: {
+            ...userWithOutPassword,
+            role: roleName
+        }
+    };
 }
 export const LoginUser = async (input: LoginInput) => {
     // check if the user is register or not

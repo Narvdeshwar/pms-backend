@@ -6,6 +6,7 @@ export const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   department: z.string().optional(),
+  role: z.string().optional(),
 })
 
 // Login Check

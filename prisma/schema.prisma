@@ -1,11 +1,9 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Role {
@@ -18,16 +16,28 @@ model Role {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  password   String
-  name       String
-  roleId     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  department String?
-  orders     Order[]
-  role       Role     @relation(fields: [roleId], references: [id])
+  id           String      @id @default(uuid())
+  email        String      @unique
+  password     String
+  name         String
+  roleId       String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  departmentId String?
+  orders       Order[]
+  role         Role        @relation(fields: [roleId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+}
+
+model Department {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  code          String   @unique
+  workers       Int      @default(0)
+  benchmarkTime String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  users         User[]
 }
 
 model Order {
@@ -61,6 +71,81 @@ model Attachment {
   orderId   String?
   createdAt DateTime @default(now())
   order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model JobOrder {
+  id                String   @id @default(uuid())
+  jobId             String   @unique // e.g., JOB-1234
+  client            String
+  type              String
+  category          String   @default("Order")
+  status            String   @default("Draft")
+  salesperson       String?
+  coordinator       String?
+  description       String?
+  quantity          Int?
+  startDate         DateTime?
+  deliveryDate      DateTime?
+  priority          String?
+  progress          Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  // JSON fields for complex data
+  departments       Json?    // Array of Department
+  instructions      Json?    // Array of DepartmentInstruction
+  timeline          Json?    // Array of TimelineEvent
+  requiredMaterials Json?    // Array of JobMaterial
+}
+
+model InventoryItem {
+  id                String             @id @default(uuid())
+  sku               String             @unique
+  name              String
+  description       String?
+  type              String             // raw_material, wip, finished_good, consumable
+  unitOfMeasure     String
+  minimumStockLevel Float?             @default(0)
+  reorderPoint      Float?             @default(0)
+  currentStock      Float              @default(0)
+  status            String             @default("active") // active, inactive
+  location          String?
+  supplier          String?
+  purchaseOrderNumber String?
+  purchaseDate      DateTime?
+  batchNumber       String?
+  expiryDate        DateTime?
+  unitPrice         Decimal?           @db.Decimal(10, 2)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  transactions      StockTransaction[]
+}
+
+model StockTransaction {
+  id            String        @id @default(uuid())
+  itemId        String
+  type          String        // in, out, adjustment
+  quantity      Float
+  referenceType String        // purchase_order, work_order, sales_order, manual
+  referenceId   String?
+  performedBy   String        // User ID (UUID)
+  timestamp     DateTime      @default(now())
+  notes         String?
+  createdAt     DateTime      @default(now())
+  item          InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model Issue {
+  id          String   @id @default(uuid())
+  title       String
+  jobId       String?  // Links to JobOrder (optional)
+  department  String?
+  severity    String   // critical, high, medium, low
+  status      String   @default("open") // open, in-progress, resolved
+  reportedBy  String
+  reportedAt  DateTime @default(now())
+  impact      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum OrderStatus {

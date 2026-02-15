@@ -33,3 +33,25 @@ export const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
         new ApiResponse(200, orders, "Orders fetched successfully")
     );
 });
+
+export const getOrder = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const order = await salesService.getOrderById(id);
+
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, order, "Order fetched successfully")
+    );
+});
+
+export const updateOrder = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const order = await salesService.updateOrder(id, req.body);
+
+    res.status(200).json(
+        new ApiResponse(200, order, "Order updated successfully")
+    );
+});

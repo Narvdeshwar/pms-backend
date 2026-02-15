@@ -17,4 +17,7 @@ export const CreateOrderSchema = z.object({
     })).optional(),
 });
 
+export const UpdateOrderSchema = CreateOrderSchema.partial();
+
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
+export type UpdateOrderInput = z.infer<typeof UpdateOrderSchema>;
