@@ -10,11 +10,11 @@ router.get("/", inventoryController.getAllItems);
 router.get("/:id", inventoryController.getItem);
 
 // Managing inventory requires appropriate roles
-router.post("/", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_CONTROLLER"]), inventoryController.createItem);
-router.patch("/:id", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_CONTROLLER"]), inventoryController.updateItem);
-router.delete("/:id", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_CONTROLLER"]), inventoryController.deleteItem);
+router.post("/", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_WAREHOUSE_MANAGER"]), inventoryController.createItem);
+router.patch("/:id", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_WAREHOUSE_MANAGER"]), inventoryController.updateItem);
+router.delete("/:id", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_WAREHOUSE_MANAGER"]), inventoryController.deleteItem);
 
 // Transactions
-router.post("/:id/transactions", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_CONTROLLER", "SHOP_FLOOR_SUPERVISOR"]), inventoryController.createTransaction);
+router.post("/:id/transactions", authorize(["IT_SYSTEM_ADMIN", "PLANT_MANAGER", "INVENTORY_WAREHOUSE_MANAGER", "SHOP_FLOOR_SUPERVISOR"]), inventoryController.createTransaction);
 
 export default router;

@@ -112,3 +112,48 @@ export const updateOrder = async (id: string, input: any) => {
         }
     });
 };
+
+/**
+ * Get all unique customers from orders
+ * Returns aggregated customer data with order count and revenue
+ */
+export const getCustomers = async () => {
+    // Get all unique customers from orders
+    const orders = await prisma.order.findMany({
+        select: {
+            customerName: true,
+            customerEmail: true,
+            totalAmount: true,
+            status: true,
+        }
+    });
+
+    // Aggregate customer data
+    const customerMap = new Map<string, any>();
+
+    orders.forEach(order => {
+        const key = order.customerName;
+        if (!customerMap.has(key)) {
+            customerMap.set(key, {
+                id: key.toLowerCase().replace(/\s+/g, '-'),
+                name: order.customerName,
+                email: order.customerEmail || `${key.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+                phone: '+1-555-0100', // Mock data
+                region: 'North America', // Mock data
+                orders: 0,
+                revenue: 0,
+                status: 'Active'
+            });
+        }
+
+        const customer = customerMap.get(key);
+        customer.orders += 1;
+        customer.revenue += Number(order.totalAmount || 0);
+    });
+
+    // Convert to array and format revenue
+    return Array.from(customerMap.values()).map(customer => ({
+        ...customer,
+        revenue: `$${customer.revenue.toFixed(2)}`
+    }));
+};

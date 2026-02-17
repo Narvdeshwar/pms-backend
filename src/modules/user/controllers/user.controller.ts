@@ -12,11 +12,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
     try {
-        const { userId, roleId, department } = req.body;
+        const { userId, roleId, departmentId } = req.body;
         if (!userId) {
             return res.status(400).json({ message: "userId is required" });
         }
-        const updatedUser = await userService.updateUser(userId, { roleId, department });
+        const updatedUser = await userService.updateUser(userId, { roleId, departmentId });
         res.json(updatedUser);
     } catch (error: any) {
         res.status(500).json({ message: error.message });

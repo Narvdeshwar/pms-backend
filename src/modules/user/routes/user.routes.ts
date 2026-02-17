@@ -6,7 +6,7 @@ const router = Router();
 
 // All routes here require authentication and super admin roles
 router.use(authenticate);
-router.use(authorize(["PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN"]));
+router.use(authorize(["PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN", "PLANT_MANAGER"]));
 
 router.get("/", userController.getAllUsers);
 router.get("/roles", userController.getAllRoles);

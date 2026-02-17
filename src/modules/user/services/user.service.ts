@@ -17,7 +17,7 @@ export const getUserById = async (id: string) => {
     });
 };
 
-export const updateUser = async (userId: string, data: { roleId?: string, department?: string }) => {
+export const updateUser = async (userId: string, data: { roleId?: string, departmentId?: string }) => {
     if (data.roleId) {
         // Check if role exists
         const role = await prisma.role.findUnique({ where: { id: data.roleId } });

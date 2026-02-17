@@ -3,6 +3,18 @@ import * as salesService from "../services/sales.service";
 import { CreateOrderSchema } from "../sales.validation";
 import { asyncHandler, ApiError, ApiResponse } from "@/shared/utils";
 
+/**
+ * Get all customers
+ * Returns aggregated customer data from orders
+ */
+export const getCustomers = asyncHandler(async (req: Request, res: Response) => {
+    const customers = await salesService.getCustomers();
+    res.status(200).json(new ApiResponse(200, customers, "Customers fetched successfully"));
+});
+
+/**
+ * Create a new sales order
+ */
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     const validation = CreateOrderSchema.safeParse(req.body);
     if (!validation.success) {

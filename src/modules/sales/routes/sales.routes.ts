@@ -6,10 +6,17 @@ const router = Router();
 
 router.use(authenticate);
 
+// Get customers (aggregated from orders)
+router.get(
+    "/customers",
+    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN", "PLANT_MANAGER"]),
+    salesController.getCustomers
+);
+
 // Both SALES and admins can create orders
 router.post(
     "/orders",
-    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN"]),
+    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN", "PLANT_MANAGER"]),
     salesController.createOrder
 );
 
@@ -30,7 +37,7 @@ router.get(
 // Update order
 router.patch(
     "/orders/:id",
-    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN"]),
+    authorize(["SALES", "PRODUCTION_PLANNER", "IT_SYSTEM_ADMIN", "PLANT_MANAGER"]),
     salesController.updateOrder
 );
 

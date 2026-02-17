@@ -15,8 +15,8 @@ export const getJobOrderById = async (id: string) => {
     });
 };
 
-export const createJobOrder = async (input: CreateJobOrderInput) => {
-    const { startDate, deliveryDate, ...rest } = input;
+export const createJobOrder = async (input: any) => {
+    const { startDate, deliveryDate, salesperson, coordinator, departmentDetails, ...rest } = input;
 
     return await prisma.jobOrder.create({
         data: {
@@ -25,22 +25,45 @@ export const createJobOrder = async (input: CreateJobOrderInput) => {
             jobId: input.jobId || `JOB-${Date.now()}`,
             startDate: startDate ? new Date(startDate) : null,
             deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
-            departments: input.departments as any,
-            instructions: input.instructions as any,
-            timeline: input.timeline as any,
-            requiredMaterials: input.requiredMaterials as any,
-        },
+            salesperson: Array.isArray(salesperson) ? salesperson.join(", ") : salesperson,
+            coordinator: Array.isArray(coordinator) ? coordinator.join(", ") : coordinator,
+            departments: departmentDetails || input.departments || [],
+            instructions: input.instructions || [],
+            timeline: input.timeline || [],
+            requiredMaterials: input.requiredMaterials || [],
+        } as any,
     });
 };
 
 export const updateJobOrder = async (id: string, input: any) => {
-    const data = { ...input };
-    if (data.startDate) data.startDate = new Date(data.startDate);
-    if (data.deliveryDate) data.deliveryDate = new Date(data.deliveryDate);
+    const { startDate, deliveryDate, salesperson, coordinator, departmentDetails, ...rest } = input;
+
+    const data: any = {
+        ...rest,
+        startDate: startDate ? new Date(startDate) : undefined,
+        deliveryDate: deliveryDate ? new Date(deliveryDate) : undefined,
+        salesperson: Array.isArray(salesperson) ? salesperson.join(", ") : salesperson,
+        coordinator: Array.isArray(coordinator) ? coordinator.join(", ") : coordinator,
+        departments: departmentDetails || rest.departments,
+    };
+
+    // Filter to only include fields that exist in the Prisma schema
+    const schemaFields = [
+        'jobId', 'client', 'type', 'category', 'status', 'salesperson',
+        'coordinator', 'description', 'quantity', 'startDate', 'deliveryDate',
+        'priority', 'progress', 'departments', 'instructions', 'timeline', 'requiredMaterials'
+    ];
+
+    const filteredData: any = {};
+    Object.keys(data).forEach(key => {
+        if (schemaFields.includes(key) && data[key] !== undefined) {
+            filteredData[key] = data[key];
+        }
+    });
 
     return await prisma.jobOrder.update({
         where: { id },
-        data,
+        data: filteredData,
     });
 };
 

@@ -18,7 +18,10 @@ export const CreateJobOrderSchema = z.object({
     instructions: z.array(z.any()).optional(),
     timeline: z.array(z.any()).optional(),
     requiredMaterials: z.array(z.any()).optional(),
-});
+    departmentDetails: z.array(z.any()).optional(),
+    departmentNames: z.array(z.string()).optional(),
+    selectedTemplates: z.array(z.string()).optional(),
+}).passthrough();
 
 export type CreateJobOrderInput = z.infer<typeof CreateJobOrderSchema>;
 

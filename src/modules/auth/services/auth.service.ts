@@ -27,7 +27,7 @@ export const RegisterUser = async (input: RegisterInput) => {
             email: input.email,
             password: hashedPassword,
             roleId: role.id,
-            department: input.department
+            departmentId: input.department
         }
     })
     const { password: _, ...userWithOutPassword } = user;
@@ -52,6 +52,7 @@ export const LoginUser = async (input: LoginInput) => {
     const isValidPassword = await bcrypt.compare(input.password, isUserExits.password)
     if (!isValidPassword) throw new Error("Invalid email or password")
 
-    const token = jwt.sign({ userId: isUserExits.id, role: isUserExits.role.name }, JWT_SECRET, { expiresIn: '1d' })
-    return { token, user: { id: isUserExits.id, name: isUserExits.name, email: isUserExits.email, role: isUserExits.role.name } }
+    const { password: _, role, ...userWithoutPassword } = isUserExits;
+    const token = jwt.sign({ userId: isUserExits.id, role: role.name }, JWT_SECRET, { expiresIn: '1d' })
+    return { token, user: { ...userWithoutPassword, role: role.name } }
 }
