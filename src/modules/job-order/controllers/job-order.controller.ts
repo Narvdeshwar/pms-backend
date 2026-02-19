@@ -20,7 +20,8 @@ export const getJobOrder = asyncHandler(async (req: Request, res: Response) => {
 export const createJobOrder = asyncHandler(async (req: Request, res: Response) => {
     const validation = CreateJobOrderSchema.safeParse(req.body);
     if (!validation.success) {
-        throw new ApiError(400, "Invalid Job Order Data", (validation.error as any).errors);
+        console.log("Create Validation Error Details:", JSON.stringify(validation.error.issues, null, 2));
+        throw new ApiError(400, "Invalid Job Order Data", validation.error.issues);
     }
 
     const jobOrder = await jobOrderService.createJobOrder(validation.data);
@@ -31,7 +32,8 @@ export const updateJobOrder = asyncHandler(async (req: Request, res: Response) =
     const id = req.params.id as string;
     const validation = UpdateJobOrderSchema.safeParse(req.body);
     if (!validation.success) {
-        throw new ApiError(400, "Invalid Job Order Data", (validation.error as any).errors);
+        console.log("Update Validation Error Details:", JSON.stringify(validation.error.issues, null, 2));
+        throw new ApiError(400, "Invalid Job Order Data", validation.error.issues);
     }
 
     const jobOrder = await jobOrderService.updateJobOrder(id, validation.data);

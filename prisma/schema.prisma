@@ -88,6 +88,8 @@ model JobOrder {
   deliveryDate      DateTime?
   priority          String?
   progress          Int      @default(0)
+  startTime         String?
+  deliveryTime      String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   // JSON fields for complex data
@@ -95,6 +97,9 @@ model JobOrder {
   instructions      Json?    // Array of DepartmentInstruction
   timeline          Json?    // Array of TimelineEvent
   requiredMaterials Json?    // Array of JobMaterial
+  selectedTemplates Json?    // Array of strings
+  projects          Json?    // Array of strings
+  attachments       Json?    // Array of attachments
 }
 
 model InventoryItem {
@@ -162,4 +167,295 @@ enum OrderPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+// Traceability Models
+model LotRecord {
+  id                String              @id @default(uuid())
+  lotNumber         String              @unique
+  itemId            String
+  itemName          String
+  quantity          Float
+  unitOfMeasure     String
+  manufacturingDate DateTime
+  expiryDate        DateTime?
+  supplierId        String?
+  supplierLotNumber String?
+  status            LotStatus           @default(ACTIVE)
+  location          String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  serials           SerialRecord[]
+}
+
+model SerialRecord {
+  id                String              @id @default(uuid())
+  serialNumber      String              @unique
+  itemId            String
+  itemName          String
+  lotId             String?
+  status            SerialStatus        @default(AVAILABLE)
+  manufacturingDate DateTime
+  location          String
+  currentJobId      String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lot               LotRecord?          @relation(fields: [lotId], references: [id])
+}
+
+model TraceabilityRecord {
+  id            String   @id @default(uuid())
+  type          String   // Lot or Serial
+  referenceId   String   // lotId or serialId
+  jobId         String?
+  operationId   String?
+  workstationId String?
+  operatorId    String?
+  timestamp     DateTime @default(now())
+  action        String   // Created, Issued, Consumed, Moved, Inspected, Reworked, Scrapped
+  fromLocation  String?
+  toLocation    String?
+  quantity      Float?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+// Document Control Models
+model Document {
+  id             String            @id @default(uuid())
+  documentNumber String            @unique
+  title          String
+  description    String?
+  type           DocumentType
+  status         DocumentStatus    @default(DRAFT)
+  version        String            @default("1.0")
+  department     String
+  owner          String
+  approver       String?
+  effectiveDate  DateTime?
+  reviewDate     DateTime?
+  filePath       String
+  fileSize       Int
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  versions       DocumentVersion[]
+  accessLogs     DocumentAccess[]
+}
+
+model DocumentVersion {
+  id         String         @id @default(uuid())
+  documentId String
+  version    String
+  changes    String
+  createdBy  String
+  createdAt  DateTime       @default(now())
+  filePath   String
+  status     DocumentStatus @default(DRAFT)
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentAccess {
+  id         String   @id @default(uuid())
+  documentId String
+  userId     String
+  userName   String
+  accessType String   // View, Download, Print
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// CAPA Models
+model CAPA {
+  id                   String       @id @default(uuid())
+  capaNumber           String       @unique
+  title                String
+  description          String
+  type                 CAPAType
+  source               CAPASource
+  priority             CAPAPriority
+  status               CAPAStatus   @default(OPEN)
+  initiatedBy          String
+  assignedTo           String
+  department           String
+  rootCause            String?
+  correctiveAction     String?
+  preventiveAction     String?
+  targetDate           DateTime
+  actualDate           DateTime?
+  verificationMethod   String?
+  verificationDate     DateTime?
+  verifiedBy           String?
+  effectivenessReview  String?
+  effectivenessDate    DateTime?
+  relatedJobId         String?
+  relatedLotId         String?
+  attachments          Json?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  actions              CAPAAction[]
+}
+
+model CAPAAction {
+  id            String           @id @default(uuid())
+  capaId        String
+  actionType    CAPAActionType
+  description   String
+  assignedTo    String
+  dueDate       DateTime
+  completedDate DateTime?
+  status        CAPAActionStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime         @default(now())
+  capa          CAPA             @relation(fields: [capaId], references: [id], onDelete: Cascade)
+}
+
+// Quality Models
+model InspectionPlan {
+  id          String              @id @default(uuid())
+  name        String
+  description String
+  type        InspectionType
+  department  String
+  items       Json                // Array of InspectionCheckItem
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  records     InspectionRecord[]
+}
+
+model InspectionRecord {
+  id            String         @id @default(uuid())
+  planId        String
+  planName      String
+  jobId         String?
+  itemId        String?
+  inspectorName String
+  date          DateTime
+  status        InspectionStatus
+  results       Json           // Array of InspectionResultItem
+  overallNotes  String?
+  createdAt     DateTime       @default(now())
+  plan          InspectionPlan @relation(fields: [planId], references: [id])
+}
+
+// Audit Log Model
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  userName    String
+  action      String   // Login, Create, Update, Delete, Approve, etc.
+  resource    String   // JobOrder, Inventory, Quality, etc.
+  resourceId  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  status      String   @default("success") // success, failure
+  timestamp   DateTime @default(now())
+}
+
+// Analytics Models
+model AnalyticsSnapshot {
+  id              String   @id @default(uuid())
+  date            DateTime
+  oee             Float
+  availability    Float
+  performance     Float
+  quality         Float
+  yieldRate       Float
+  onTimeDelivery  Float
+  activeJobs      Int
+  completedJobs   Int
+  activeIssues    Int
+  inventoryValue  Float
+  createdAt       DateTime @default(now())
+}
+
+// Enums
+enum LotStatus {
+  ACTIVE
+  CONSUMED
+  QUARANTINED
+  EXPIRED
+}
+
+enum SerialStatus {
+  AVAILABLE
+  IN_USE
+  CONSUMED
+  DEFECTIVE
+  RETURNED
+}
+
+enum DocumentType {
+  SOP
+  WORK_INSTRUCTION
+  QUALITY_MANUAL
+  SAFETY_PROCEDURE
+  TRAINING_MATERIAL
+}
+
+enum DocumentStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  ACTIVE
+  OBSOLETE
+}
+
+enum CAPAType {
+  CORRECTIVE_ACTION
+  PREVENTIVE_ACTION
+  BOTH
+}
+
+enum CAPASource {
+  CUSTOMER_COMPLAINT
+  INTERNAL_AUDIT
+  QUALITY_ISSUE
+  SAFETY_INCIDENT
+  PROCESS_DEVIATION
+  SUPPLIER_ISSUE
+}
+
+enum CAPAPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CAPAStatus {
+  OPEN
+  IN_PROGRESS
+  UNDER_REVIEW
+  CLOSED
+  CANCELLED
+}
+
+enum CAPAActionType {
+  INVESTIGATION
+  IMPLEMENTATION
+  VERIFICATION
+  REVIEW
+}
+
+enum CAPAActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum InspectionType {
+  RECEIVING
+  IN_PROCESS
+  FINAL
+  MAINTENANCE
+}
+
+enum InspectionStatus {
+  PASS
+  FAIL
+  CONDITIONAL
 }

@@ -31,6 +31,9 @@ export const createJobOrder = async (input: any) => {
             instructions: input.instructions || [],
             timeline: input.timeline || [],
             requiredMaterials: input.requiredMaterials || [],
+            selectedTemplates: input.selectedTemplates || [],
+            projects: input.projects || [],
+            attachments: input.attachments || [],
         } as any,
     });
 };
@@ -51,7 +54,9 @@ export const updateJobOrder = async (id: string, input: any) => {
     const schemaFields = [
         'jobId', 'client', 'type', 'category', 'status', 'salesperson',
         'coordinator', 'description', 'quantity', 'startDate', 'deliveryDate',
-        'priority', 'progress', 'departments', 'instructions', 'timeline', 'requiredMaterials'
+        'startTime', 'deliveryTime', 'priority', 'progress', 'departments',
+        'instructions', 'timeline', 'requiredMaterials', 'selectedTemplates',
+        'projects', 'attachments'
     ];
 
     const filteredData: any = {};
