@@ -16,25 +16,52 @@ export const getJobOrderById = async (id: string) => {
 };
 
 export const createJobOrder = async (input: any) => {
-    const { startDate, deliveryDate, salesperson, coordinator, departmentDetails, ...rest } = input;
+    const {
+        startDate,
+        deliveryDate,
+        salesperson,
+        coordinator,
+        departmentDetails,
+        created, // Exclude legacy frontend fields
+        delivery, // Exclude legacy frontend fields
+        ...rest
+    } = input;
+
+    const data: any = {
+        ...rest,
+        status: input.status || "Draft",
+        jobId: input.jobId || `JOB-${Date.now()}`,
+        startDate: startDate ? new Date(startDate) : null,
+        deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+        salesperson: Array.isArray(salesperson) ? salesperson.join(", ") : salesperson,
+        coordinator: Array.isArray(coordinator) ? coordinator.join(", ") : coordinator,
+        departments: departmentDetails || input.departments || [],
+        instructions: input.instructions || [],
+        timeline: input.timeline || [],
+        requiredMaterials: input.requiredMaterials || [],
+        selectedTemplates: input.selectedTemplates || [],
+        projects: input.projects || [],
+        attachments: input.attachments || [],
+    };
+
+    // Filter to only include fields that exist in the Prisma schema
+    const schemaFields = [
+        'jobId', 'client', 'type', 'category', 'status', 'salesperson',
+        'coordinator', 'description', 'quantity', 'startDate', 'deliveryDate',
+        'startTime', 'deliveryTime', 'priority', 'progress', 'departments',
+        'instructions', 'timeline', 'requiredMaterials', 'selectedTemplates',
+        'projects', 'attachments'
+    ];
+
+    const filteredData: any = {};
+    Object.keys(data).forEach(key => {
+        if (schemaFields.includes(key) && data[key] !== undefined) {
+            filteredData[key] = data[key];
+        }
+    });
 
     return await prisma.jobOrder.create({
-        data: {
-            ...rest,
-            status: input.status || "Draft",
-            jobId: input.jobId || `JOB-${Date.now()}`,
-            startDate: startDate ? new Date(startDate) : null,
-            deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
-            salesperson: Array.isArray(salesperson) ? salesperson.join(", ") : salesperson,
-            coordinator: Array.isArray(coordinator) ? coordinator.join(", ") : coordinator,
-            departments: departmentDetails || input.departments || [],
-            instructions: input.instructions || [],
-            timeline: input.timeline || [],
-            requiredMaterials: input.requiredMaterials || [],
-            selectedTemplates: input.selectedTemplates || [],
-            projects: input.projects || [],
-            attachments: input.attachments || [],
-        } as any,
+        data: filteredData,
     });
 };
 
