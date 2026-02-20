@@ -98,12 +98,8 @@ export const getDepartmentEfficiency = async () => {
     });
 
     // Calculate efficiency percentage
-    Object.keys(departmentStats).forEach(deptName => {
-        const stats = departmentStats[deptName];
-        stats.efficiency = stats.totalJobs > 0
-            ? (stats.completedJobs / stats.totalJobs) * 100
-            : 0;
-    });
-
-    return departmentStats;
+    return Object.keys(departmentStats).map(name => ({
+        name,
+        ...departmentStats[name]
+    }));
 };
