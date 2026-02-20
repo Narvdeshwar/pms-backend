@@ -13,9 +13,9 @@ export const CreateInventoryItemSchema = z.object({
     location: z.string().optional(),
     supplier: z.string().optional(),
     purchaseOrderNumber: z.string().optional(),
-    purchaseDate: z.string().optional(),
+    purchaseDate: z.string().optional().nullable(),
     batchNumber: z.string().optional(),
-    expiryDate: z.string().optional(),
+    expiryDate: z.string().optional().nullable(),
     unitPrice: z.number().optional(),
 });
 

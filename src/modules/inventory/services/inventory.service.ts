@@ -37,8 +37,14 @@ export const createItem = async (data: CreateInventoryItemInput) => {
 
 export const updateItem = async (id: string, data: any) => {
     const updateData = { ...data };
-    if (updateData.purchaseDate) updateData.purchaseDate = new Date(updateData.purchaseDate);
-    if (updateData.expiryDate) updateData.expiryDate = new Date(updateData.expiryDate);
+
+    if (updateData.purchaseDate !== undefined) {
+        updateData.purchaseDate = updateData.purchaseDate ? new Date(updateData.purchaseDate) : null;
+    }
+
+    if (updateData.expiryDate !== undefined) {
+        updateData.expiryDate = updateData.expiryDate ? new Date(updateData.expiryDate) : null;
+    }
 
     return await prisma.inventoryItem.update({
         where: { id },
